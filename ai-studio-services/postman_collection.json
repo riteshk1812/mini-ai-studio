@@ -1,0 +1,14 @@
+{
+  "item": [],
+  "event": [],
+  "variable": [],
+  "info": {
+    "_postman_id": "2aa97a0d-3fdc-4f2f-b15c-96c3365fd69b",
+    "name": "AI Studio API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Generated automatically from Swagger spec",
+      "type": "text/plain"
+    }
+  }
+}
