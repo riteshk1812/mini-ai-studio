@@ -1,6 +1,6 @@
 import path from "path";
 import fs from 'fs'
-import { v4 as uuidv4 } from 'uuid'
+import { v4 as uuidv4 } from 'uuid';
 import { pool } from "../config/db";
 import { ENV } from "../config/env";
 

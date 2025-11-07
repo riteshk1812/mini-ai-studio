@@ -21,7 +21,10 @@ export function initServer(router: Router, middleware?: TMiddleware[]): { app: E
   }
 
   // --- Initialize DB ---
-  initializeDb();
+  if (ENV.NODE_ENV !== "test") {
+    initializeDb();
+  }
+  // initializeDb();
 
   // --- Liveness ---
   app.get("/liveness", (_req: Request, res: Response) => {

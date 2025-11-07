@@ -25,10 +25,12 @@ export const promptGenerationContoller: Pick<IApiController, 'get' | 'post'> = {
 
       if (!user) {
         res.status(401).json({ message: 'Unauthorized, please login!!' });
+        return;
       }
 
       if (!prompt) {
         res.status(400).json({ message: 'Prompt is required!!' });
+        return;
       }
 
       const result = await imageGenerationService({
@@ -42,12 +44,18 @@ export const promptGenerationContoller: Pick<IApiController, 'get' | 'post'> = {
         message: 'Prompt generated successfully',
         data: result,
       });
+      return;
     } catch (error: any) {
-      if (error.message === 'Model Overloaded') {
-        res.status(503).json({ message: 'Model Overloaded' });
-      }
-      console.error('Generation Error', error);
-      res.status(500).json({ message: 'Internal Server Error' });
+      if (res.headersSent) return;
+
+    if (error.message === "Model Overloaded") {
+      res.status(429).json({ message: "Model Overloaded" });
+      return;
+    }
+
+    console.error("Error fetching generations list:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+    return;
     }
   },
 
@@ -66,6 +74,7 @@ export const promptGenerationContoller: Pick<IApiController, 'get' | 'post'> = {
 
       if (!user) {
         res.status(401).json({ message: 'Unauthorized, please login!!' });
+        return;
       }
 
       const limit = parsedSchemas.data.query.limit || 5;
@@ -74,6 +83,7 @@ export const promptGenerationContoller: Pick<IApiController, 'get' | 'post'> = {
 
       if (generations.length === 0) {
         res.status(200).json({ message: 'No generations found', generations: [] });
+        return;
       }
 
     res.status(200).json({
@@ -81,6 +91,7 @@ export const promptGenerationContoller: Pick<IApiController, 'get' | 'post'> = {
         count: generations.length,
         generations,
       });
+      return;
     } catch (error) {
       console.error(`Error fetching generations list: ${error}`);
     res.status(500).json({ message: 'Internal Server Error' });

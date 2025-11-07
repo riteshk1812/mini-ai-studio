@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, FormEvent, useRef } from "react";
 import API from "../utils/api";
 import toast from "react-hot-toast";
 import { useAppSelector, useAppDispatch } from "../redux/hooks/typedHook";
@@ -25,20 +25,23 @@ import {
 } from "@mui/material";
 import { Grid } from "@mui/material";
 
-
-
 export default function PromptGeneration() {
     const [prompt, setPrompt] = useState("");
     const [style, setStyle] = useState("Realistic");
     const [image, setImage] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<{ prompt?: string; image?: string }>({});
+    const [abortController, setAbortController] = useState<AbortController | null>(null);
 
     const { generations } = useAppSelector((state) => state.promptGeneration);
     const { token } = useAppSelector((state) => state.auth);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
 
+    const retryCount = useRef(0);
+    const MAX_RETRIES = 3;
+
+    // ✅ Redirect if not logged in
     useEffect(() => {
         if (!token) {
             toast.error("Please login!");
@@ -53,11 +56,9 @@ export default function PromptGeneration() {
                     id: gen.id,
                     prompt: gen.prompt,
                     style: gen.style,
-                    imageUrl: gen.imageUrl || gen.image_url, // ✅ handles both
-                    createdAt: gen.createdAt || gen.created_at, // ✅ handles both
+                    imageUrl: gen.imageUrl || gen.image_url,
+                    createdAt: gen.createdAt || gen.created_at,
                 }));
-                console.log("on reload w", normalized);
-
                 dispatch(fetchGenerationSuccess(normalized));
             } catch (err: any) {
                 dispatch(generationFailure());
@@ -67,6 +68,17 @@ export default function PromptGeneration() {
         fetchGenerations();
     }, [dispatch, navigate, token]);
 
+    // ✅ Abort API request in-flight
+    const handleAbort = () => {
+        if (abortController) {
+            abortController.abort();
+            setAbortController(null);
+            setLoading(false);
+            toast.error("Generation aborted!");
+        }
+    };
+
+    // ✅ Main submit handler with retry + abort support
     const handlePromptSubmit = async (e: FormEvent) => {
         e.preventDefault();
 
@@ -74,7 +86,6 @@ export default function PromptGeneration() {
         if (!prompt.trim()) newErr.prompt = "Please enter a prompt!";
         if (!image) newErr.image = "Please upload an image!";
         setErrors(newErr);
-
         if (Object.keys(newErr).length > 0) return;
 
         const formData = new FormData();
@@ -82,27 +93,57 @@ export default function PromptGeneration() {
         formData.append("style", style);
         if (image) formData.append("image", image);
 
-        try {
-            setLoading(true);
-            const { data } = await API.post("/generations", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-            const newGen = {
-                id: data.data.id,
-                prompt: data.data.prompt,
-                style: data.data.style,
-                imageUrl: data.data.image_url,
-                createdAt: data.data.created_at,
-            };
-            dispatch(createGenerationSuccess(newGen));
-            toast.success("Generation created successfully!");
-            setPrompt("");
-            setImage(null);
-        } catch (error: any) {
-            dispatch(generationFailure());
-            toast.error(error.response?.data?.error || "Failed to create generation!");
-        } finally {
-            setLoading(false);
+        let attempt = 0;
+        let success = false;
+
+        const controller = new AbortController();
+        setAbortController(controller);
+
+        while (attempt < MAX_RETRIES && !success) {
+            try {
+                setLoading(true);
+                toast.loading(`Generating... (Attempt ${attempt + 1})`, { id: "gen-progress" });
+
+                const { data } = await API.post("/generations", formData, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                    signal: controller.signal,
+                });
+
+                const newGen = {
+                    id: data.data.id,
+                    prompt: data.data.prompt,
+                    style: data.data.style,
+                    imageUrl: data.data.image_url,
+                    createdAt: data.data.created_at,
+                };
+
+                dispatch(createGenerationSuccess(newGen));
+                toast.dismiss("gen-progress");
+                toast.success("Generation created successfully!");
+                setPrompt("");
+                setImage(null);
+                success = true;
+                retryCount.current = 0;
+            } catch (error: any) {
+                if (controller.signal.aborted) {
+                    toast.dismiss("gen-progress");
+                    toast.error("Request aborted!");
+                    break;
+                }
+
+                attempt++;
+                if (attempt < MAX_RETRIES) {
+                    toast.error(`Failed (Attempt ${attempt}), retrying...`);
+                    await new Promise((r) => setTimeout(r, 1000)); // wait before retry
+                } else {
+                    dispatch(generationFailure());
+                    toast.dismiss("gen-progress");
+                    toast.error(error.response?.data?.error || "Failed to create generation!");
+                }
+            } finally {
+                setLoading(false);
+                setAbortController(null);
+            }
         }
     };
 
@@ -140,7 +181,6 @@ export default function PromptGeneration() {
                     <Button
                         variant="outlined"
                         component="label"
-                        // startIcon={<UploadFileIcon />}
                         color={errors.image ? "error" : "primary"}
                     >
                         {image ? image.name : "Upload Image"}
@@ -180,14 +220,31 @@ export default function PromptGeneration() {
                         helperText={errors.prompt}
                     />
 
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        disabled={loading}
-                        sx={{ py: 1.2 }}
-                    >
-                        {loading ? <CircularProgress size={24} color="inherit" /> : "Generate"}
-                    </Button>
+                    <Box sx={{ display: "flex", gap: 2 }}>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            disabled={loading}
+                            sx={{ py: 1.2, flex: 1 }}
+                        >
+                            {loading ? (
+                                <CircularProgress size={24} color="inherit" />
+                            ) : (
+                                "Generate"
+                            )}
+                        </Button>
+
+                        {loading && (
+                            <Button
+                                variant="outlined"
+                                color="error"
+                                onClick={handleAbort}
+                                sx={{ py: 1.2 }}
+                            >
+                                Abort
+                            </Button>
+                        )}
+                    </Box>
                 </Box>
             </Paper>
 
@@ -234,3 +291,4 @@ export default function PromptGeneration() {
         </Box>
     );
 }
+

@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "target": "es5",
+    "types": ["cypress", "node"],
     "lib": [
       "dom",
       "dom.iterable",

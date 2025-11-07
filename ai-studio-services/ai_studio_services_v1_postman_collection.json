@@ -1,59 +1,203 @@
 {
-  "item": [
-    {
-      "id": "191f6ea9-8243-465b-9cef-524dc5b1dcfb",
-      "name": "POST /api/login",
-      "request": {
-        "description": {
-          "content": "Login User",
-          "type": "text/plain"
-        },
-        "url": {
-          "path": ["api", "login"],
-          "host": ["{{baseUrl}}"],
-          "query": [
-            {
-              "key": "members",
-              "value": []
-            },
-            {
-              "key": "reference",
-              "value": {}
-            },
-            {
-              "key": "Type",
-              "value": {
-                "_postman_propertyName": "QueryParam",
-                "_postman_propertyIndexKey": "key",
-                "_postman_propertyAllowsMultipleValues": true
-              }
-            },
-            {
-              "key": "_postman_listIndexKey",
-              "value": "key"
-            },
-            {
-              "key": "_postman_listAllowsMultipleValues",
-              "value": true
-            }
-          ],
-          "variable": []
-        },
-        "method": "POST"
-      },
-      "response": [],
-      "event": []
-    }
-  ],
-  "event": [],
-  "variable": [],
-  "info": {
-    "_postman_id": "c11aa977-abcf-4759-85f6-3789ead5aaae",
-    "name": "AI Studio API Collection",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": {
-      "content": "Generated automatically from Swagger spec",
-      "type": "text/plain"
-    }
-  }
+	"info": {
+		"_postman_id": "b7ce8837-e75f-41b1-bb7b-20b0a0e95891",
+		"name": "AI Studio API Collection",
+		"description": "Generated automatically from Swagger spec",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "49717644",
+		"_collection_link": "https://riteshk1812-6070085.postman.co/workspace/Ritesh-Kumar's-Workspace~a448d439-8bd2-43de-8b26-57bb13257c85/collection/49717644-b7ce8837-e75f-41b1-bb7b-20b0a0e95891?action=share&source=collection_link&creator=49717644"
+	},
+	"item": [
+		{
+			"name": "login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"phone\": \"8088484807\",\n    \"password\": \"123456789\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"auth",
+						"login"
+					]
+				},
+				"description": "Login User"
+			},
+			"response": []
+		},
+		{
+			"name": "liveness",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/liveness",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"liveness"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "health-check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/db-health",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"db-health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "register user",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Anvika Gupta\",\n    \"email\": \"anvika.gupta@modelia.com\",\n    \"phone\": 9912366345,\n    \"password\": \"123456789\",\n    \"confirmPassword\": \"123456789\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/auth/signup",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"auth",
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "generationHistory",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTAsImlhdCI6MTc2MjE1MzIzNiwiZXhwIjoxNzYyMTc0ODM2fQ.vA9ZSo_oCLQRMiD-G85JUV9StIPChpL6zBz_WnsUbxc",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/generations?limit=5",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"generations"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "generatePrompts",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwiaWF0IjoxNzYyMTQ3ODI5LCJleHAiOjE3NjIxNjk0Mjl9.ur5S9aClQ59mV033RtZMup87WVouEXRkX5h1wV8QlVw",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "prompt",
+							"value": "Happy Diwali",
+							"type": "text"
+						},
+						{
+							"key": "style",
+							"value": "diwali_quotes",
+							"type": "text"
+						},
+						{
+							"key": "image",
+							"type": "file",
+							"src": "/private/var/folders/l8/_n2fllls0zqfswhymc2jzv300000gn/T/com.apple.Photos.NSItemProvider/uuid=0679EC41-7A7B-496A-9144-B567396CD177&code=001&library=1&type=1&mode=1&loc=true&cap=true.jpeg/82d2dce4-db69-4f17-8824-1c54c14c4dd4.jpeg"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:5000/generations",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"generations"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "localhost:5000"
+		}
+	]
 }

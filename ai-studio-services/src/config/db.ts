@@ -3,12 +3,14 @@ import { ENV } from './env';
 import { pid } from 'process';
 
 export const pool = new Pool({
-  host: ENV.DB_HOST,
-  port: Number(ENV.DB_PORT),
   user: ENV.DB_USER,
-  password: ENV.DB_PASSWORD,
+  host: ENV.DB_HOST,
   database: ENV.DB_NAME,
+  password: ENV.DB_PASSWORD,
+  port: Number(ENV.DB_PORT),
+  ssl: false,
 });
+
 
 export const initializeDb = async () => {
   try {
@@ -39,6 +41,7 @@ export const initializeDb = async () => {
         );
       `,
     );
+    await pool.connect();
   } catch (err) {
     console.error(`❌ Error initializing database: ${err}`);
   }
