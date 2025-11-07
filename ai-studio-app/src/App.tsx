@@ -1,25 +1,31 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "./redux/hooks/typedHook";
+import { login } from "./redux/slices/loginSlice";
+import { Navigate, Route, Routes } from "react-router-dom";
+import HomePage from "./pages/HomePage";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+
 
 function App() {
+  const dispatch = useAppDispatch();
+  const { token } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+    if (storedToken && storedUser) {
+      dispatch(login({ user: JSON.parse(storedUser), token: storedToken }));
+    }
+  }, [dispatch]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Routes>
+      <Route path="/" element={<Navigate to={token ? "/home" : "/login"} />} />
+      <Route path="/login" element={token ? <Navigate to="/home" /> : <Login />} />
+      <Route path="/register" element={token ? <Navigate to="/home" /> : <Register />} />
+      <Route path="/home" element={token ? <HomePage /> : <Navigate to="/login" />} />
+    </Routes>
   );
 }
 

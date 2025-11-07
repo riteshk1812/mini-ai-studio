@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: ai_studio_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: root123
+      POSTGRES_DB: ai_studio
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ./ai-studio-services
+      dockerfile: Dockerfile
+    container_name: ai_studio_api
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./ai-studio-services/.env
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://admin:root123@db:5432/ai_studio
+    volumes:
+      - ./ai-studio-services:/app
+      - /app/node_modules
+    command: npm run dev
+
+  frontend:
+    build:
+      context: ./ai-studio-app
+      dockerfile: Dockerfile
+    container_name: ai_studio_fe
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:

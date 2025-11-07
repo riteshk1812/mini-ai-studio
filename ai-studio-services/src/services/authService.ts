@@ -60,5 +60,9 @@ export const loginUser = async (identifier: string, password: string) => {
   if (!isMatch) throw new Error('Invalid Credentials');
 
   const token = generateToken(user.id);
-  return { token, user: { id: user.id, name: user.name, email: user.email, phone: user.phone } };
+  return { 
+    token,
+    user: { id: user.id, name: user.name, email: user.email, phone: user.phone },
+    message: 'Login Successfully!!'
+  };
 };
